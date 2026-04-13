@@ -1,5 +1,6 @@
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -15,6 +16,7 @@ import {
   refreshAccessToken,
   setAccessToken,
 } from "./api/authApi";
+import { queryClient } from "@/lib/queryClient";
 import {
   clearAuthSession,
   getAuthSession,
@@ -30,6 +32,7 @@ type AuthContextValue = {
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   logoutAllDevices: () => Promise<void>;
+  rehydrateFromTokens: (token: string, refreshToken: string) => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -40,6 +43,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const rehydrateFromTokens = useCallback(async (token: string, refreshToken: string) => {
+    setAccessToken(token);
+    const meResult = await getMe(token);
+    const nextSession: AuthSession = {
+      token,
+      refreshToken,
+      user: {
+        email: meResult.user.email,
+        employee_number: meResult.user.employee_number,
+        is_system_admin: meResult.user.is_system_admin,
+        must_change_password: Boolean(meResult.user.must_change_password),
+      },
+    };
+    setAuthSession(nextSession);
+    setSession(nextSession);
+  }, []);
 
   useEffect(() => {
     const bootstrapSession = async () => {
@@ -54,8 +74,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setAccessToken(storedSession.token);
 
       try {
-        await getMe(storedSession.token);
-        setSession(storedSession);
+        const meResult = await getMe(storedSession.token);
+        const nextSession: AuthSession = {
+          token: storedSession.token,
+          refreshToken: storedSession.refreshToken,
+          user: {
+            email: meResult.user.email,
+            employee_number: meResult.user.employee_number,
+            is_system_admin: meResult.user.is_system_admin,
+            must_change_password: Boolean(meResult.user.must_change_password),
+          },
+        };
+        setAuthSession(nextSession);
+        setSession(nextSession);
         setIsAuthLoading(false);
         return;
       } catch (err) {
@@ -80,6 +111,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             email: meResult.user.email,
             employee_number: meResult.user.employee_number,
             is_system_admin: meResult.user.is_system_admin,
+            must_change_password: Boolean(meResult.user.must_change_password),
           },
         };
 
@@ -108,6 +140,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         email: meResult.user.email,
         employee_number: meResult.user.employee_number,
         is_system_admin: meResult.user.is_system_admin,
+        must_change_password: Boolean(meResult.user.must_change_password),
       },
     };
 
@@ -128,6 +161,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     clearAuthSession();
     setAccessToken(null);
     setSession(null);
+    queryClient.removeQueries({ queryKey: ["directory"] });
     setIsLoggingOut(false);
   };
 
@@ -143,6 +177,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     clearAuthSession();
     setAccessToken(null);
     setSession(null);
+    queryClient.removeQueries({ queryKey: ["directory"] });
     setIsLoggingOut(false);
   };
 
@@ -155,8 +190,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       login,
       logout,
       logoutAllDevices,
+      rehydrateFromTokens,
     }),
-    [isAuthLoading, isLoggingOut, session]
+    [isAuthLoading, isLoggingOut, rehydrateFromTokens, session]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

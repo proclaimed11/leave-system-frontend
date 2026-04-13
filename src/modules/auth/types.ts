@@ -12,6 +12,7 @@ export type LoginResponse = {
     employee_number: string | null;
     email: string;
     is_system_admin: boolean;
+    must_change_password: boolean;
   };
 };
 
@@ -22,6 +23,7 @@ export type MeResponse = {
     email: string;
     employee_number: string | null;
     is_system_admin: boolean;
+    must_change_password?: boolean;
     iat?: number;
     exp?: number;
   };
@@ -40,5 +42,19 @@ export type AuthSession = {
     email: string;
     employee_number: string | null;
     is_system_admin: boolean;
+    must_change_password?: boolean;
+  };
+};
+
+export type ChangePasswordResponse = {
+  message: string;
+  token: string;
+  refreshToken: string;
+  user: {
+    id: number;
+    employee_number: string | null;
+    email: string;
+    is_system_admin: boolean;
+    must_change_password: boolean;
   };
 };

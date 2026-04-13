@@ -1,5 +1,6 @@
 import axios from "axios";
 import type {
+  ChangePasswordResponse,
   LoginRequest,
   LoginResponse,
   MeResponse,
@@ -27,6 +28,11 @@ authApi.interceptors.request.use((config) => {
 
 export function setAccessToken(token: string | null): void {
   accessToken = token;
+}
+
+/** Current Bearer token for non-identity APIs (e.g. directory-svc). */
+export function getAccessToken(): string | null {
+  return accessToken;
 }
 
 export async function loginWithPassword(
@@ -60,4 +66,15 @@ export async function logoutCurrentSession(refreshToken: string): Promise<void> 
 export async function logoutAll(token: string): Promise<void> {
   setAccessToken(token);
   await authApi.post("/auth/logout-all", {});
+}
+
+export async function changePassword(body: {
+  current_password: string;
+  new_password: string;
+}): Promise<ChangePasswordResponse> {
+  const { data } = await authApi.post<ChangePasswordResponse>(
+    "/auth/change-password",
+    body
+  );
+  return data;
 }
