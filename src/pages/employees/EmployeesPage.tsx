@@ -175,7 +175,7 @@ export function EmployeesPage() {
   })();
 
   return (
-    <section className="w-full max-w-6xl space-y-6" aria-labelledby="employees-page-title">
+    <section className="w-full space-y-6" aria-labelledby="employees-page-title">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1

@@ -8,6 +8,7 @@ import type {
   DirectoryLocationRow,
   DirectoryRoleRow,
   EmployeeCreatePayload,
+  CountryOverviewResponse,
   EmployeeProfile,
   EmployeesListResponse,
   EmployeeUpdatePayload,
@@ -84,6 +85,7 @@ export type FetchEmployeesListParams = {
   page?: number;
   limit?: number;
   company_key?: string;
+  status?: string;
   search?: string;
   sort_by?: string;
   sort_dir?: "asc" | "desc";
@@ -92,17 +94,28 @@ export type FetchEmployeesListParams = {
 export async function fetchEmployeesList(
   params: FetchEmployeesListParams = {}
 ): Promise<EmployeesListResponse> {
-  const { page = 1, limit = 200, company_key, search, sort_by, sort_dir } = params;
+  const { page = 1, limit = 200, company_key, status, search, sort_by, sort_dir } = params;
   const { data } = await directoryApi.get<EmployeesListResponse>("/employees", {
     params: {
       page,
       limit,
       ...(company_key ? { company_key } : {}),
+      ...(status ? { status } : {}),
       ...(search ? { search } : {}),
       ...(sort_by ? { sort_by } : {}),
       ...(sort_dir ? { sort_dir } : {}),
     },
   });
+  return data;
+}
+
+export async function fetchCountryOverview(
+  countryPrefix: string
+): Promise<CountryOverviewResponse> {
+  const { data } = await directoryApi.get<CountryOverviewResponse>(
+    "/dashboard/overview/country",
+    { params: { country_prefix: countryPrefix } }
+  );
   return data;
 }
 

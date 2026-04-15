@@ -169,9 +169,7 @@ export function EmployeeCreatePage() {
   const locationsQuery = useLocations();
   const countriesQuery = useCountries();
   const employmentTypesQuery = useEmploymentTypes();
-  const departmentsQuery = useDepartments(
-    profile?.company_key ? { company_key: profile.company_key } : {}
-  );
+  const departmentsQuery = useDepartments();
 
   const [form, setForm] = useState<FormState>(initialForm);
   const [tempPasswordHandoff, setTempPasswordHandoff] = useState<{
@@ -330,7 +328,7 @@ export function EmployeeCreatePage() {
 
   if (!settled) {
     return (
-      <section className="w-full max-w-3xl space-y-6" aria-labelledby="create-employee-title">
+      <section className="w-full space-y-6" aria-labelledby="create-employee-title">
         <Skeleton className="h-10 w-64" />
         <Card>
           <CardHeader>
@@ -348,7 +346,7 @@ export function EmployeeCreatePage() {
 
   if (!canCreate) {
     return (
-      <section className="w-full max-w-3xl space-y-6" aria-labelledby="create-employee-title">
+      <section className="w-full space-y-6" aria-labelledby="create-employee-title">
         <div className="flex flex-wrap gap-2">
           <Link to="/employees" className={cn(buttonVariants({ variant: "outline", size: "sm" }))}>
             ← Employees
@@ -367,7 +365,7 @@ export function EmployeeCreatePage() {
   }
 
   return (
-    <section className="w-full max-w-3xl space-y-6" aria-labelledby="create-employee-title">
+    <section className="w-full space-y-6" aria-labelledby="create-employee-title">
       <div className="flex flex-wrap gap-2">
         <Link to="/employees" className={cn(buttonVariants({ variant: "outline", size: "sm" }))}>
           ← Employees

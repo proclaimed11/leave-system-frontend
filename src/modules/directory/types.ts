@@ -60,6 +60,17 @@ export type EmployeesListResponse = {
   employees: EmployeeListRow[];
 };
 
+export type CountryOverviewResponse = {
+  country_prefix: string;
+  kpis: {
+    totalEmployees: number;
+    activeEmployees: number;
+    archivedEmployees: number;
+    departments: number;
+    branches: number;
+  };
+};
+
 /** Raw employee row from GET /employees/:employee_number (directory DB). */
 export type DirectoryEmployeeRecord = EmployeeListRow & {
   avatar_url?: string | null;

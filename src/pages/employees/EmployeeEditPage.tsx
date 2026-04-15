@@ -290,9 +290,7 @@ export function EmployeeEditPage() {
   const locationsQuery = useLocations();
   const [form, setForm] = useState<EditFormState | null>(null);
 
-  const departmentsQuery = useDepartments(
-    form?.company_key ? { company_key: form.company_key } : {}
-  );
+  const departmentsQuery = useDepartments();
 
   useEffect(() => {
     if (!detailQuery.data) return;
@@ -481,7 +479,7 @@ export function EmployeeEditPage() {
   }
 
   return (
-    <section className="w-full max-w-3xl space-y-6">
+    <section className="w-full space-y-6">
       <div className="flex flex-wrap gap-2">
         <Link to="/" className={cn(buttonVariants({ variant: "outline", size: "sm" }))}>
           ← Overview

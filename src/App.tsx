@@ -1,10 +1,18 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import { ProtectedRoute } from "@/modules/auth/components/ProtectedRoute";
+import { RoleRoute } from "@/modules/auth/components/RoleRoute";
 import { ChangePasswordPage } from "@/modules/auth/pages/ChangePasswordPage";
 import { LoginPage } from "@/modules/auth/pages/LoginPage";
 import { DashboardLayout } from "@/layouts/DashboardLayout";
+import { CountryOverviewPage } from "@/pages/dashboard/CountryOverviewPage";
 import { DashboardHomePage } from "@/pages/dashboard/DashboardHomePage";
+import { HrDeskPage } from "@/pages/dashboard/HrDeskPage";
 import { PlaceholderPage } from "@/pages/dashboard/PlaceholderPage";
+import { ReportsPage } from "@/pages/dashboard/ReportsPage";
+import { ApprovalRequestDetailPage } from "@/pages/leave/ApprovalRequestDetailPage";
+import { ApprovalsPage } from "@/pages/leave/ApprovalsPage";
+import { ApplyLeavePage } from "@/pages/leave/ApplyLeavePage";
+import { MyLeaveRequestDetailPage } from "@/pages/leave/MyLeaveRequestDetailPage";
 import {
   EmployeeCreatePage,
   EmployeeDetailPage,
@@ -32,54 +40,107 @@ function App() {
           </ProtectedRoute>
         }
       >
-        <Route index element={<DashboardHomePage />} />
-        <Route path="employees" element={<EmployeesPage />} />
-        <Route path="employees/new" element={<EmployeeCreatePage />} />
-        <Route path="employees/:employeeNumber/edit" element={<EmployeeEditPage />} />
-        <Route path="employees/:employeeNumber" element={<EmployeeDetailPage />} />
+        <Route
+          index
+          element={
+            <RoleRoute allowRoles={["admin"]}>
+              <DashboardHomePage />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="overview/country/:countryPrefix"
+          element={
+            <RoleRoute allowRoles={["admin", "hr", "management"]}>
+              <CountryOverviewPage />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="employees"
+          element={
+            <RoleRoute allowRoles={["admin", "hr", "hod", "supervisor", "management"]}>
+              <EmployeesPage />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="employees/new"
+          element={
+            <RoleRoute allowRoles={["admin", "hr", "management"]}>
+              <EmployeeCreatePage />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="employees/:employeeNumber/edit"
+          element={
+            <RoleRoute allowRoles={["admin", "hr", "management"]}>
+              <EmployeeEditPage />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="employees/:employeeNumber"
+          element={
+            <RoleRoute allowRoles={["admin", "hr", "hod", "supervisor", "management"]}>
+              <EmployeeDetailPage />
+            </RoleRoute>
+          }
+        />
         <Route
           path="my-leave"
           element={
-            <PlaceholderPage
-              title="My leave"
-              description="Request time off, view balances, and see your history."
-            />
+            <ApplyLeavePage />
+          }
+        />
+        <Route
+          path="my-leave/:requestId"
+          element={
+            <MyLeaveRequestDetailPage />
           }
         />
         <Route
           path="approvals"
           element={
-            <PlaceholderPage
-              title="Approvals"
-              description="Queue for supervisors / HOD — approve or send back requests."
-            />
+            <RoleRoute allowRoles={["admin", "hr", "hod", "management"]}>
+              <ApprovalsPage />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="approvals/:requestId"
+          element={
+            <RoleRoute allowRoles={["admin", "hr", "hod", "management"]}>
+              <ApprovalRequestDetailPage />
+            </RoleRoute>
           }
         />
         <Route
           path="hr-desk"
           element={
-            <PlaceholderPage
-              title="HR desk"
-              description="HR-only tools — policies, imports, employee records (dummy)."
-            />
+            <RoleRoute allowRoles={["admin", "hr"]}>
+              <HrDeskPage />
+            </RoleRoute>
           }
         />
         <Route
           path="reports"
           element={
-            <PlaceholderPage
-              title="Reports"
-              description="Management & consultant read-only analytics (dummy)."
-            />
+            <RoleRoute allowRoles={["admin", "hr", "hod", "supervisor", "management"]}>
+              <ReportsPage />
+            </RoleRoute>
           }
         />
         <Route
           path="settings"
           element={
-            <PlaceholderPage
-              title="Settings"
-              description="Profile, notifications, and preferences."
-            />
+            <RoleRoute allowRoles={["admin"]}>
+              <PlaceholderPage
+                title="Settings"
+                description="Profile, notifications, and preferences."
+              />
+            </RoleRoute>
           }
         />
       </Route>

@@ -162,6 +162,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setAccessToken(null);
     setSession(null);
     queryClient.removeQueries({ queryKey: ["directory"] });
+    queryClient.removeQueries({ queryKey: ["leave"] });
     setIsLoggingOut(false);
   };
 
@@ -178,6 +179,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setAccessToken(null);
     setSession(null);
     queryClient.removeQueries({ queryKey: ["directory"] });
+    queryClient.removeQueries({ queryKey: ["leave"] });
     setIsLoggingOut(false);
   };
 

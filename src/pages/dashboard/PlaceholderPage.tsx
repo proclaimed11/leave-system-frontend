@@ -14,7 +14,7 @@ type PlaceholderPageProps = {
 
 export function PlaceholderPage({ title, description }: PlaceholderPageProps) {
   return (
-    <div className="w-full max-w-2xl">
+    <div className="w-full">
       <Card>
         <CardHeader>
           <div className="flex flex-wrap items-center gap-2">

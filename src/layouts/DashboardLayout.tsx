@@ -4,6 +4,7 @@ import type { LucideIcon } from "lucide-react";
 import {
   BarChart3,
   Building2,
+  ChevronDown,
   Inbox,
   LayoutDashboard,
   Menu,
@@ -29,6 +30,10 @@ import {
   DashboardMobileAccountSheet,
   DashboardSidebarAccountBlock,
 } from "@/layouts/DashboardUserArea";
+import { useAuth } from "@/modules/auth/AuthContext";
+import { useLocations } from "@/modules/directory/hooks/useLocations";
+import { useDirectoryProfile } from "@/modules/directory/hooks/useDirectoryProfile";
+import { usePendingApprovals } from "@/modules/leave/hooks/usePendingApprovals";
 import { cn } from "@/lib/utils";
 
 type NavItem = {
@@ -38,6 +43,15 @@ type NavItem = {
   end?: boolean;
   badge?: string;
 };
+
+type NavKey =
+  | "overview"
+  | "my_leave"
+  | "approvals"
+  | "users"
+  | "hr_desk"
+  | "reports"
+  | "settings";
 
 /** Breadcrumb + current page label for the sticky header (desktop). */
 function DashboardHeaderTrail() {
@@ -65,6 +79,7 @@ function DashboardHeaderTrail() {
   } else {
     const leaf =
       {
+        overview: segments[2] ? `Country (${String(segments[2]).toUpperCase()})` : "Overview",
         "my-leave": "My leave",
         approvals: "Approvals",
         "hr-desk": "HR desk",
@@ -105,19 +120,33 @@ function DashboardHeaderTrail() {
   );
 }
 
-const navItems: NavItem[] = [
-  { to: "/", label: "Overview", icon: LayoutDashboard, end: true },
-  { to: "/my-leave", label: "My leave", icon: Palmtree },
-  { to: "/approvals", label: "Approvals", icon: Inbox, badge: "3" },
-  { to: "/employees", label: "Employees", icon: Users },
-  { to: "/hr-desk", label: "HR desk", icon: Building2 },
-  { to: "/reports", label: "Reports", icon: BarChart3 },
-  { to: "/settings", label: "Settings", icon: Settings },
+const navItems: Array<NavItem & { key: NavKey }> = [
+  { key: "overview", to: "/", label: "Overview", icon: LayoutDashboard, end: true },
+  { key: "my_leave", to: "/my-leave", label: "My leave", icon: Palmtree },
+  { key: "approvals", to: "/approvals", label: "Approvals", icon: Inbox },
+  { key: "users", to: "/employees", label: "Employees", icon: Users },
+  { key: "hr_desk", to: "/hr-desk", label: "HR desk", icon: Building2 },
+  { key: "reports", to: "/reports", label: "Reports", icon: BarChart3 },
+  { key: "settings", to: "/settings", label: "Settings", icon: Settings, badge: "Coming soon" },
 ];
+
+const allowedNavByRole: Record<string, Set<NavKey>> = {
+  admin: new Set(["overview", "my_leave", "approvals", "users", "hr_desk", "reports", "settings"]),
+  hr: new Set(["overview", "my_leave", "approvals", "users", "hr_desk", "reports"]),
+  hod: new Set(["my_leave", "approvals", "users", "reports"]),
+  employee: new Set(["my_leave"]),
+  consultant: new Set(["my_leave"]),
+  supervisor: new Set(["my_leave", "users", "reports"]),
+  management: new Set(["overview", "my_leave", "approvals", "users", "reports"]),
+};
 
 export function DashboardLayout() {
   const location = useLocation();
+  const { session } = useAuth();
+  const profileQuery = useDirectoryProfile();
+  const locationsQuery = useLocations();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [overviewOpen, setOverviewOpen] = useState(false);
 
   useEffect(() => {
     setMobileNavOpen(false);
@@ -139,6 +168,29 @@ export function DashboardLayout() {
   }, [mobileNavOpen]);
 
   const closeMobileNav = () => setMobileNavOpen(false);
+  const role = String(profileQuery.data?.directory_role ?? "").toLowerCase().trim();
+  const isSystemAdmin = Boolean(session?.user.is_system_admin);
+  const hasGlobalOverviewAccess = isSystemAdmin || role === "admin";
+  const navPermission = isSystemAdmin
+    ? allowedNavByRole.admin
+    : allowedNavByRole[role] ?? new Set<NavKey>(["my_leave"]);
+  const hasApprovalsAccess = navPermission.has("approvals");
+  const pendingApprovalsQuery = usePendingApprovals(
+    { page: 1, limit: 1 },
+    { enabled: hasApprovalsAccess },
+  );
+  const visibleNavItems = navItems.filter((item) => navPermission.has(item.key));
+  const countryMap = new Map<string, string>();
+  for (const l of locationsQuery.data ?? []) {
+    const prefix = String(l.location_key ?? "").trim().toUpperCase().split("_")[0];
+    const label = String(l.country_group ?? "").trim();
+    if (prefix && label && !countryMap.has(prefix)) countryMap.set(prefix, label);
+  }
+  const allCountries = Array.from(countryMap.entries()).map(([value, label]) => ({ value, label }));
+  const myCountryPrefix = String(profileQuery.data?.location ?? "").trim().toUpperCase().split("_")[0] || "";
+  const overviewCountries = hasGlobalOverviewAccess
+    ? allCountries
+    : allCountries.filter((c) => c.value === myCountryPrefix);
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-background md:flex-row">
@@ -185,31 +237,115 @@ export function DashboardLayout() {
           className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-2 py-3"
           aria-label="Main navigation"
         >
-          {navItems.map(({ to, label, icon: Icon, end, badge }) => (
-            <NavLink
-              key={to}
-              to={to}
-              end={end}
-              onClick={closeMobileNav}
-              className={({ isActive }) =>
-                cn(
-                  "flex w-full min-w-0 items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                  "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring",
-                  isActive &&
-                    "bg-sidebar-accent text-sidebar-accent-foreground ring-1 ring-sidebar-border"
-                )
-              }
-            >
-              <Icon className="size-4 shrink-0 opacity-80" aria-hidden />
-              <span className="min-w-0 flex-1 truncate">{label}</span>
-              {badge ? (
-                <Badge variant="secondary" className="shrink-0 text-[10px]">
-                  {badge}
-                </Badge>
-              ) : null}
-            </NavLink>
-          ))}
+          {visibleNavItems.map(({ key, to, label, icon: Icon, end, badge }) => {
+            const liveBadge = key === "approvals" ? String(pendingApprovalsQuery.data?.total ?? 0) : badge;
+            if (key === "overview") {
+              return (
+                <div key="overview-group" className="space-y-1">
+                  <button
+                    type="button"
+                    onClick={() => setOverviewOpen((v) => !v)}
+                    className={cn(
+                      "flex w-full min-w-0 items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                      "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
+                    )}
+                  >
+                    <Icon className="size-4 shrink-0 opacity-80" aria-hidden />
+                    <span className="min-w-0 flex-1 truncate text-left">{label}</span>
+                    <ChevronDown
+                      className={cn("size-4 shrink-0 transition-transform", overviewOpen ? "rotate-180" : "rotate-0")}
+                    />
+                  </button>
+                  {overviewOpen ? (
+                    <div className="ml-6 flex flex-col gap-0.5 border-l border-sidebar-border pl-2">
+                      {hasGlobalOverviewAccess ? (
+                        <NavLink
+                          to="/"
+                          end
+                          onClick={closeMobileNav}
+                          className={({ isActive }) =>
+                            cn(
+                              "rounded-lg px-3 py-2 text-xs font-medium transition-colors",
+                              "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                              isActive &&
+                                "bg-sidebar-accent text-sidebar-accent-foreground ring-1 ring-sidebar-border"
+                            )
+                          }
+                        >
+                          Global overview
+                        </NavLink>
+                      ) : null}
+                      {overviewCountries.map((c) => (
+                        <NavLink
+                          key={c.value}
+                          to={`/overview/country/${c.value}`}
+                          onClick={closeMobileNav}
+                          className={({ isActive }) =>
+                            cn(
+                              "rounded-lg px-3 py-2 text-xs font-medium transition-colors",
+                              "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                              isActive &&
+                                "bg-sidebar-accent text-sidebar-accent-foreground ring-1 ring-sidebar-border"
+                            )
+                          }
+                        >
+                          {c.label}
+                        </NavLink>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+              );
+            }
+
+            if (key === "settings") {
+              return (
+                <div
+                  key={to}
+                  aria-disabled="true"
+                  className={cn(
+                    "flex w-full min-w-0 items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium",
+                    "cursor-not-allowed opacity-55",
+                  )}
+                >
+                  <Icon className="size-4 shrink-0 opacity-80" aria-hidden />
+                  <span className="min-w-0 flex-1 truncate">{label}</span>
+                  {badge ? (
+                    <Badge variant="secondary" className="shrink-0 text-[10px]">
+                      {badge}
+                    </Badge>
+                  ) : null}
+                </div>
+              );
+            }
+
+            return (
+              <NavLink
+                key={to}
+                to={to}
+                end={end}
+                onClick={closeMobileNav}
+                className={({ isActive }) =>
+                  cn(
+                    "flex w-full min-w-0 items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                    "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring",
+                    isActive &&
+                      "bg-sidebar-accent text-sidebar-accent-foreground ring-1 ring-sidebar-border"
+                  )
+                }
+              >
+                <Icon className="size-4 shrink-0 opacity-80" aria-hidden />
+                <span className="min-w-0 flex-1 truncate">{label}</span>
+                {liveBadge ? (
+                  <Badge variant="secondary" className="shrink-0 text-[10px]">
+                    {liveBadge}
+                  </Badge>
+                ) : null}
+              </NavLink>
+            );
+          })}
         </nav>
         <div className="mt-auto flex flex-col gap-2 border-t border-sidebar-border p-3">
           <DashboardSidebarAccountBlock />
