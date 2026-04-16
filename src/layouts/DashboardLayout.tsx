@@ -144,7 +144,6 @@ export function DashboardLayout() {
   const location = useLocation();
   const { session } = useAuth();
   const profileQuery = useDirectoryProfile();
-  const locationsQuery = useLocations();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [overviewOpen, setOverviewOpen] = useState(false);
 
@@ -171,6 +170,8 @@ export function DashboardLayout() {
   const role = String(profileQuery.data?.directory_role ?? "").toLowerCase().trim();
   const isSystemAdmin = Boolean(session?.user.is_system_admin);
   const hasGlobalOverviewAccess = isSystemAdmin || role === "admin";
+  const canReadLocations = isSystemAdmin || role === "admin" || role === "hr";
+  const locationsQuery = useLocations({ enabled: canReadLocations });
   const navPermission = isSystemAdmin
     ? allowedNavByRole.admin
     : allowedNavByRole[role] ?? new Set<NavKey>(["my_leave"]);
