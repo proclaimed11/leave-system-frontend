@@ -376,13 +376,7 @@ export function EmployeeCreatePage() {
         <CardHeader>
           <CardTitle id="create-employee-title">New employee</CardTitle>
           <CardDescription>
-            <span className="font-medium text-foreground">Department</span> must be chosen from the
-            directory list (matches <code className="rounded bg-muted px-1 py-0.5 text-xs">departments.dept_key</code>
-            ). Branch <span className="font-medium text-foreground">location</span>,{" "}
-            <span className="font-medium text-foreground">employment type</span>, and{" "}
-            <span className="font-medium text-foreground">hire date</span> are required. Employee # format:{" "}
-            <code className="rounded bg-muted px-1 py-0.5 text-xs">PREFIX-123</code>. Country is optional
-            but usually set when you pick a location.
+            Add a new employee profile and complete the required staffing details.
           </CardDescription>
         </CardHeader>
         <form onSubmit={onSubmit}>
@@ -431,11 +425,10 @@ export function EmployeeCreatePage() {
                   options={departmentOptions}
                   disabled={departmentsQuery.isLoading && departmentOptions.length <= 1}
                   required
-                  hint="From GET /departments (scoped to your company when available)."
                 />
                 {departmentsQuery.isError ? (
                   <p className="text-[11px] text-destructive sm:col-span-2" role="alert">
-                    Could not load departments. Check HR/admin access to GET /departments.
+                    Could not load departments right now.
                   </p>
                 ) : null}
                 <Field
@@ -470,11 +463,11 @@ export function EmployeeCreatePage() {
                     placeholderLabel={
                       locationsQuery.isLoading ? "Loading locations…" : "Select branch / site"
                     }
-                    hint="Grouped by country. Required so we know which branch this employee belongs to."
+                    hint="Grouped by country to help you choose the correct branch."
                   />
                   {locationsQuery.isError ? (
                     <p className="mt-1 text-[11px] text-destructive" role="alert">
-                      Could not load locations. Check HR/admin access to GET /locations.
+                      Could not load locations right now.
                     </p>
                   ) : null}
                 </div>
@@ -502,7 +495,6 @@ export function EmployeeCreatePage() {
                   options={employmentTypeOptions}
                   disabled={employmentTypesQuery.isLoading && employmentTypeOptions.length <= 1}
                   required
-                  hint="From directory employment_types (FK)."
                 />
                 {employmentTypesQuery.isError ? (
                   <p className="text-[11px] text-destructive sm:col-span-2" role="alert">
@@ -550,7 +542,7 @@ export function EmployeeCreatePage() {
                     ))}
                   </select>
                   <p className="text-[11px] text-muted-foreground">
-                    Must match directory gender lookup keys (FK).
+                    Select the employee's gender.
                   </p>
                 </div>
               </div>

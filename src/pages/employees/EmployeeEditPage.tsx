@@ -517,9 +517,7 @@ export function EmployeeEditPage() {
           <CardHeader>
             <CardTitle>Edit employee</CardTitle>
             <CardDescription>
-              Changes are saved to directory (
-              <code className="rounded bg-muted px-1 py-0.5 text-xs">PUT /employees/:id</code>
-              ). HR or admin access required.
+              Update employee details and save your changes.
             </CardDescription>
             <p className="pt-1 font-mono text-xs text-muted-foreground">{employeeNumber}</p>
           </CardHeader>
@@ -559,11 +557,10 @@ export function EmployeeEditPage() {
                     onChange={setSelect("department")}
                     options={departmentOptions}
                     disabled={departmentsQuery.isLoading && departmentOptions.length === 0}
-                    hint="From GET /departments — must match departments.dept_key (FK)."
                   />
                   {departmentsQuery.isError ? (
                     <p className="text-[11px] text-destructive sm:col-span-2" role="alert">
-                      Could not load departments. Check HR/admin access to GET /departments.
+                      Could not load departments right now.
                     </p>
                   ) : null}
                   <Field label="Title" id="title" value={form.title} onChange={set("title")} />
@@ -589,12 +586,10 @@ export function EmployeeEditPage() {
                     onChange={setSelect("directory_role")}
                     options={directoryRoleOptions}
                     disabled={rolesQuery.isLoading && directoryRoleOptions.length === 0}
-                    hint="Values come from the directory `roles` table (FK on `employees.directory_role`)."
                   />
                   {rolesQuery.isError ? (
                     <p className="text-[11px] text-destructive sm:col-span-2" role="alert">
-                      Could not load role list. Check network or HR/admin access to{" "}
-                      <code className="rounded bg-muted px-1 py-0.5 text-[10px]">GET /roles</code>.
+                      Could not load roles right now.
                     </p>
                   ) : null}
                   <Field
@@ -612,12 +607,11 @@ export function EmployeeEditPage() {
                     groups={locationGroups}
                     disabled={locationsQuery.isLoading && locationGroups.length === 0}
                     required
-                    hint="Grouped by country: Tanzania, Kenya, Uganda, Rwanda. Picking a site sets Country to match."
+                    hint="Grouped by country. Choosing a location helps keep the country in sync."
                   />
                   {locationsQuery.isError ? (
                     <p className="text-[11px] text-destructive sm:col-span-2" role="alert">
-                      Could not load locations. Check HR/admin access to{" "}
-                      <code className="rounded bg-muted px-1 py-0.5 text-[10px]">GET /locations</code>.
+                      Could not load locations right now.
                     </p>
                   ) : null}
                   <SelectField
@@ -629,15 +623,10 @@ export function EmployeeEditPage() {
                     disabled={
                       employmentTypesQuery.isLoading && employmentTypeOptions.length <= 1
                     }
-                    hint="Values come from the directory `employment_types` table (FK on `employees.employment_type`)."
                   />
                   {employmentTypesQuery.isError ? (
                     <p className="text-[11px] text-destructive sm:col-span-2" role="alert">
-                      Could not load employment types. Check HR/admin access to{" "}
-                      <code className="rounded bg-muted px-1 py-0.5 text-[10px]">
-                        GET /employment-types
-                      </code>
-                      .
+                      Could not load employment types right now.
                     </p>
                   ) : null}
                 </div>
@@ -655,12 +644,11 @@ export function EmployeeEditPage() {
                     onChange={setSelect("country")}
                     options={countryOptions}
                     disabled={countriesQuery.isLoading && countryOptions.length <= 1}
-                    hint="Directory `countries` table (FK). Updates automatically when you change Location when possible."
+                    hint="Updates automatically when you change location when possible."
                   />
                   {countriesQuery.isError ? (
                     <p className="text-[11px] text-destructive sm:col-span-2" role="alert">
-                      Could not load countries. Check HR/admin access to{" "}
-                      <code className="rounded bg-muted px-1 py-0.5 text-[10px]">GET /countries</code>.
+                      Could not load countries right now.
                     </p>
                   ) : null}
                   <EmployeeAvatarUpload
@@ -678,7 +666,6 @@ export function EmployeeEditPage() {
                     value={form.gender}
                     onChange={setSelect("gender")}
                     options={GENDER_SELECT_OPTIONS}
-                    hint="Must match directory lookup keys (FK)."
                   />
                   <SelectField
                     label="Marital status"
@@ -686,7 +673,6 @@ export function EmployeeEditPage() {
                     value={form.marital_status}
                     onChange={setSelect("marital_status")}
                     options={MARITAL_SELECT_OPTIONS}
-                    hint="Must match directory lookup keys (FK)."
                   />
                   <DatePickerField
                     label="Date of birth"
